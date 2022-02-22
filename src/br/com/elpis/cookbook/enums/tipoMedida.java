@@ -4,7 +4,7 @@ public enum tipoMedida {
     UNIDADE,
     KILO,
     GRAMA,
-    MILILITRO,
+    ML,
     COLHER_DE_SOPA,
     COLHER_DE_CHA,
     COLHER_DE_CAFE,

@@ -1,10 +1,10 @@
 package br.com.elpis.cookbook.view;
-
 import br.com.elpis.cookbook.controller.Catalogo;
 import br.com.elpis.cookbook.domain.Receita;
+import br.com.elpis.cookbook.enums.Categoria;
 
-import java.util.Locale;
-import java.util.Scanner;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class CatalogoView {
 
@@ -18,162 +18,103 @@ public class CatalogoView {
         next();
     }
 
-    public void find() {
-        // capturar nome da receita
-        // procurar no catálogo se já existe;
-        System.out.println("Entre com o NOME ou NÚMERO da receita para localizar (V-Voltar) ");
-        Scanner scanner = new Scanner(System.in);
-        String opcao;
-
+    public void view() {
         do {
-            opcao = scanner.nextLine().trim().toUpperCase(Locale.getDefault());
-            if (!opcao.equals("V")) {
-
-                // entrou com o NÚMERO da Receita
-                if (opcao.chars().allMatch(Character::isDigit)) {
-                    int numeroReceita = Integer.parseInt(opcao);
-                    if (numeroReceita -1 < 0 || numeroReceita > controller.getTotal()) {
-                        System.out.printf("Número da receita [%d] é inválido!\n", numeroReceita);
-                    } else {
-                        Receita receita = controller.getReceita(numeroReceita-1);
-                        if (receita != null) {
-                            ative = receita;
-                            break;
-                        } else {
-                            System.out.printf("Receita nº [%d] não localizada!\n", numeroReceita);
-                        }
-                    }
-                } else {  // entrou com o NOME da Receita
-                    Receita receita = controller.getReceita(opcao);
-                    if (receita != null) {
-                        ative = receita;
-                        break;
-                    } else {
-                        System.out.printf("Receita de nome [%d] não localizada!\n", opcao);
-                    }
-
-                }
-
-            } else break;
-        } while(true);
-
-    }
-
-
-    public void view() { // desenha a tela....
-        // se NÃO houver receita ativa: mostrar mensagem;
-        // se  houver receita:
-        //    monta o layout da tela com os dados da receita;
-        //    exibe o layout montado;
-        // exibe o menu de opções
-
-        do {
-
-            String tela = "";
-            if (ative == null) {
-                tela = "Nenhuma receita encontrada!";
-            } else {
-                tela = "  # ".concat(ative.toString());
-            }
-
-            System.out.println(tela);
-
+            //Exibe receita ativa...
+            new ReceitaView(ative).fullView(System.out);
+            //Exibe o menu de opções.
         } while (showMenu());
-
     }
 
     private boolean showMenu() {
-        System.out.println("┌".concat("─".repeat(100)));
-        System.out.println("│  + = Adicionar");
-        if (ative != null) System.out.println("│  - = Remover");
-        if (controller.getTotal() > 0) {
-            System.out.println("│  P = Próxima");
-            System.out.println("│  A = Anterior");
-            System.out.println("│  L = Localizar");
-        }
-        System.out.println("│  X = Sair");
-        System.out.println("└".concat("─".repeat(100)));
 
-        Scanner scanner = new Scanner(System.in);
-        String opcao;
-        opcao = scanner.nextLine().trim().toUpperCase(Locale.getDefault());
-        switch (opcao) {
-            case "+":
-                add();
-                break;
-            case "-":
-                if (ative != null) del();
-                break;
-            case "P":
-                if (ative != null) next();
-                break;
-            case "A":
-                if (ative != null) previous();
-                break;
-            case "L":
-                if (controller.getTotal() > 0) find();
-                break;
-            case "X":
-                System.out.println("Obrigado por usar o App [Pangeia-Cake]!!");
-                return false;
-            default:
-                System.out.println("Opção Inválida!\n");
+        String[][] menuOptions = new String[7][3];  // quantidade dos itens ['menu']['metodo/resposta']...
+
+        ConsoleUtils.addOptionsMenu(menuOptions, "+ : Adicionar", "+", "add");
+        if (ative != null) {
+            ConsoleUtils.addOptionsMenu(menuOptions, "- : Remover", "-", "del");
         }
-        return true;
+        if (controller.getTotal() > 0) {
+            ConsoleUtils.addOptionsMenu(menuOptions, "P : Próxima", "P", "next");
+            ConsoleUtils.addOptionsMenu(menuOptions, "A : Anterior", "A", "previous");
+            ConsoleUtils.addOptionsMenu(menuOptions, "L : Localizar", "L", "find");
+            ConsoleUtils.addOptionsMenu(menuOptions, "E : Editar", "E", "edit");
+        }
+        ConsoleUtils.addOptionsMenu(menuOptions, "X : [Sair]", "X", "exit");
+
+        String option = ConsoleUtils.getUserOption(ConsoleUtils.montaMenu(menuOptions), menuOptions, "MENU PRINCIPAL - Escolha uma opção");
+
+        ConsoleUtils.callByName(this, option);
+
+        return ( !option.equals("exit") );
     }
 
+    public void exit() { System.out.println("\nObrigado por usar o App [Pangeia-Cake]®!!"); }
 
     public void next() {
-        // se estiver com a receita ativa, ativa a próxima;
-        // se NÃO estiver com uma receita ativa, ativa a primeira receita;
         currentIndex = (currentIndex >= controller.getTotal() - 1) ? 0 : ++currentIndex;
         ative = controller.getReceita(currentIndex);
     }
 
     public void previous() {
-        // se estiver com a receita ativa, ativa a anterior;
-        // se NÃO estiver com uma receita ativa, ativa a última receita;
-        currentIndex = (currentIndex == 0) ? controller.getTotal() - 1 : --currentIndex;
+        currentIndex = (currentIndex <= 0) ? controller.getTotal() - 1 : --currentIndex;
         ative = controller.getReceita(currentIndex);
     }
 
     public void del() {
-        //Se NÃO estiver com uma receita ativa, mostra mensagem.
-        //Se estiver com uma receita ativa, confirma a operação.
-        //Se confirmar, solicita ao Catalogo apagar a receita.
-        System.out.println("Você deseja realmente APAGAR a receita " + ative.getNome() + "?\nS - Sim   N - Não");
-        Scanner scanner = new Scanner(System.in);
-        String opcao;
-        do {
-            opcao = scanner.nextLine().trim().toUpperCase(Locale.getDefault());
-            if (opcao.equals("S")) {
-                controller.del(ative.getNome());
-                --currentIndex;
-                next();
-                break;
-            } else if (opcao.equals("N")) {
-                break;
-            } else {
-                System.out.println("Opção inválida!!!");
-            }
-        } while (true);
-
+        String option = ConsoleUtils.getUserOption("Confirma APAGAR a receita: " + ative.getNome() + " [S=Sim  N=Não]? ", ConsoleUtils.MENU_OPTIONS_YESNO, "");
+        if (option.equalsIgnoreCase("S")) {
+            controller.del(ative.getNome());
+            --currentIndex;
+            next();
+        }
     }
 
-    public void add() {
+    public void find() {
+        String option = ConsoleUtils.getUserInput("Entre com o NOME ou NÚMERO da receita para localizar: ");
+        if (option.trim().isBlank()) return;
+        if (option.chars().allMatch(Character::isDigit)) { // entrou com o NÚMERO da Receita
+            ative = controller.getReceita(Integer.parseInt(option) - 1);
+        } else {  // entrou com o NOME da Receita
+            ative = controller.getReceita(option);
+        }
+            currentIndex = -1;
+    }
+
+    public void add() {  // OK!
         // capturar nome da receita;
-        // procurar no catálogo se já existe;
-        // Se encontra, mostrar mensagem;
-        // Se não encontrar continua:
-        //   capturar dados da nova receita;
-        //   criar nova receita;
-        //   passa a receita para o Catalogo adicionar;
-        // Torna a nova receita ativa;
+        String name = ConsoleUtils.getUserInput("Entre com o NOME da nova receita: ");
+        if (name.trim().isBlank()) return;
+        // verifica se já existe;
+        Receita other = controller.getReceita(name);
+        if (other != null) {
+            String option = ConsoleUtils.getUserOption("Receita já existe! Deseja visualizar [S=Sim  N=Não]?  ", ConsoleUtils.MENU_OPTIONS_YESNO, "");
+            if (option.equalsIgnoreCase("S")) {
+                ative = other;
+            }
+        } else {
+            // selecionar Categoria:
+            int index  = ConsoleUtils.menuEnums( Arrays.stream(Categoria.values()).map(Enum::name).toArray(String[]::new), "Selecione a NOVA Categoria");
+            if (index == ConsoleUtils.RETURN_VALUE_EXIT) return;
+            // criar nova receita;
+            other = new Receita(name, Categoria.values()[index-1]);
+            // passa a receita para o Catalogo adicionar;
+            controller.add(other);
+            // torna a nova receita ativa;
+            ative = other;
+            currentIndex = -1;
+        }
     }
 
     public void edit() {
-        // se NÃO estiver com a receita ativa, mostra mensagem;
-        // se estiver com a receita ativa, abrir tela de edição;
+        Receita nova = new EditReceitaView(ative, controller).edit(); // clone..
+        if (nova != null) {
+            controller.del(ative.getNome());
+            controller.add(nova);
+            //Torna a nova receita a ativa.
+            ative = nova;
+            currentIndex = 0;
+        }
     }
 
 

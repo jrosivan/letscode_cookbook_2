@@ -26,7 +26,7 @@ public class Rendimento {
         return maximo;
     }
 
-    public tipoRendimento getTipoRendimento() {
+    public tipoRendimento getTipo() {
         return tipo;
     }
 
