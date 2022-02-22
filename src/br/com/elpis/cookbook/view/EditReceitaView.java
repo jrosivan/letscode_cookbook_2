@@ -27,7 +27,7 @@ public class EditReceitaView {
             new ReceitaView(receita).fullView(System.out); //Exibe receita ativa...
         } while (showMenu());
         if (!receita.equals(original)) {
-            String option = ConsoleUtils.getUserOption("*** RECEITA foi alterada!!!", ConsoleUtils.MENU_OPTIONS_YESNO, "Gravar Alterações? [S=Sim  N=Não]");
+            String option = ConsoleUtils.getUserOption("***  RECEITA foi alterada!!!", ConsoleUtils.MENU_OPTIONS_YESNO, "Gravar Alterações? [S=Sim  N=Não]");
             if (option.equalsIgnoreCase("S")) {
                 return receita;
             }
