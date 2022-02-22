@@ -13,7 +13,7 @@ import java.util.List;
 
 public class EditReceitaView {
 
-    private Catalogo controller;
+    private final Catalogo controller;
     private Receita receita;
 
     public EditReceitaView(Receita receita, Catalogo controller) {
@@ -27,7 +27,7 @@ public class EditReceitaView {
             new ReceitaView(receita).fullView(System.out); //Exibe receita ativa...
         } while (showMenu());
         if (!receita.equals(original)) {
-            String option = ConsoleUtils.getUserOption("Gravar Alterações? [S=Sim  N=Não]  ", ConsoleUtils.MENU_OPTIONS_YESNO, "");
+            String option = ConsoleUtils.getUserOption("*** RECEITA foi alterada!!!", ConsoleUtils.MENU_OPTIONS_YESNO, "Gravar Alterações? [S=Sim  N=Não]");
             if (option.equalsIgnoreCase("S")) {
                 return receita;
             }
@@ -156,10 +156,10 @@ public class EditReceitaView {
         String nameIngrediente = ConsoleUtils.getUserInput("Entre com o NOME do novo Ingrediente: ");
         if (!nameIngrediente.isBlank()) {
             double quantidade = ConsoleUtils.getUserValueInt("Entre com o QUANTIDADE do Ingrediente: ");
-            if (quantidade != ConsoleUtils.RETURN_VALUE_BLANK && quantidade != ConsoleUtils.RETURN_VALUE_ERROR && quantidade > 0) {
+            if (quantidade > 0) {
                 int index = ConsoleUtils.menuEnums( Arrays.stream(tipoMedida.values()).map(Enum::name).toArray(String[]::new),"Entre com o TIPO de Medida");
                 if (index != ConsoleUtils.RETURN_VALUE_EXIT) {
-                    ingrediente = new Ingrediente(nameIngrediente, Double.valueOf(quantidade),  tipoMedida.values()[ index-1 ] );
+                    ingrediente = new Ingrediente(nameIngrediente, quantidade,  tipoMedida.values()[ index-1 ] );
                 }
             }
         }
